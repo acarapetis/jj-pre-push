@@ -1,0 +1,53 @@
+# jj-pre-push
+
+[![PyPI](https://img.shields.io/pypi/v/jj-pre-push)](https://pypi.org/project/jj-pre-push/)
+
+A _very limited_ integration between [jj](https://jj-vcs.github.io) and
+[pre-commit](https://pre-commit.com/) allowing you to run your pre-push hooks in a
+colocated jj/git repository.
+
+I don't expect this to last forever, it's just a stopgap until some jj-native mechanism
+arrives that can take over.
+
+Prior art:
+
+- <https://www.aazuspan.dev/blog/automating-pre-push-checks-with-jujutsu/>
+- Various comments on <https://github.com/jj-vcs/jj/issues/405>
+
+## Usage
+
+Use `jj-pre-push push` (or an alias - personally I use `jj push`) as a replacement for
+`jj git push`. It takes all the same arguments, and does the following:
+
+1. Determines which bookmarks the corresponding `jj git push` will update on the remote,
+   and how they would change.
+2. For each of these bookmarks in turn:
+   - Checks out the bookmark to the working copy
+   - Runs the pre-push hooks defined in your .pre-commit-config.yaml on the files that
+     have changed between the remote branch's old and new states. (This is for forward
+     movements of existing branches; for sideways/backwards movements and new branches
+     we currently check all files.)
+   - Reports any failures; and if any files were modified reports the change ID in which
+     these modifications can be found
+3. If all hooks succeeded on all branches, executes `jj git push` with the arguments
+   provided.
+4. Returns the working copy to its original change.
+
+If there is no .pre-commit-config.yaml in your workspace root, `jj-pre-push push`
+immediately delegates to `jj git push`.
+
+
+## Installation
+
+If you have [uv](https://docs.astral.sh/uv/) installed and you're planning to use an
+alias anyway, you can avoid explicitly installing at all with `uvx`, e.g. with this jj
+configuration for `jj push`:
+
+```toml
+[aliases]
+push = ["util", "exec", "--", "uvx", "jj-pre-push", "push"]
+```
+
+Otherwise, install the PyPI package `jj-pre-push` in whichever way you prefer; e.g. `uv tool
+install jj-pre-push` or `pip install jj-pre-push`. (Or clone this repository and install
+it in editable mode if you want to hack on it.)

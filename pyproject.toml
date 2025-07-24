@@ -1,0 +1,44 @@
+[project]
+name = "jj-pre-push"
+version = "0.1.0"
+description = "A pre-commit integration for jj"
+readme = "README.md"
+authors = [
+    { name = "Anthony Carapetis", email = "anthony.carapetis@gmail.com" }
+]
+requires-python = ">=3.10"
+dependencies = [
+    "typer-slim>=0.16.0",
+]
+
+[project.scripts]
+jj-pre-push = "jj_pre_push.cli:app"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.1",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.2,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.pyright]
+pythonVersion = "3.10"
+venvPath = "."
+venv = ".venv"
+typeCheckingMode = "standard"
+
+[tool.ruff.lint]
+# Ruff defaults + I + RUF.
+# Pinning them all explicitly to avoid automatically adopting future defaults.
+select = [
+    "F", "I", "RUF", 
+    "E401", "E402", 
+    "E701", "E702", "E703", 
+    "E711", "E712", "E713", "E714", "E721", 
+    "E722", 
+    "E731", 
+    "E741", "E742", "E743", 
+    "E902", 
+]

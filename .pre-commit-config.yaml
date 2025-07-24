@@ -1,0 +1,17 @@
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 4b94be130f0326b2abddb9cade8248eb4b0fdadb # uv 0.7.20
+    hooks:
+      - id: uv-lock
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: 6c5418a077bd954e7078087a655421b85772095b # v0.12.4
+    hooks:
+      - id: ruff-check
+      - id: ruff-format
+  - repo: local
+    hooks:
+      - id: tests
+        name: run unit tests
+        language: system
+        entry: uv run pytest
+        pass_filenames: false

@@ -1,2 +1,6 @@
+import sys
+
+
 def main():
-    print("hi")
+    print(repr(sys.executable))
+    print(sys.argv)

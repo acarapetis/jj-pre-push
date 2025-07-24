@@ -1,0 +1,27 @@
+[project]
+name = "jj-pre-push"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Anthony Carapetis", email = "anthony.carapetis@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = []
+
+[project.scripts]
+jj-pre-push = "jj_pre_push.cli:main"
+
+[project.optional-dependencies]
+pre-commit = [
+    "pre-commit",
+]
+
+[build-system]
+requires = ["uv_build>=0.8.2,<0.9.0"]
+build-backend = "uv_build"
+
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"

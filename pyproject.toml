@@ -7,7 +7,9 @@ authors = [
     { name = "Anthony Carapetis", email = "anthony.carapetis@gmail.com" }
 ]
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "typer-slim>=0.16.0",
+]
 
 [project.scripts]
 jj-pre-push = "jj_pre_push.cli:main"
@@ -25,3 +27,4 @@ build-backend = "uv_build"
 pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"
+typeCheckingMode = "standard"

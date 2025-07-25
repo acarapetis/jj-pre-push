@@ -165,6 +165,8 @@ def checkout(ref: str):
     tempbm = "jj-pre-push-keep-" + "".join(random.choices(string.ascii_letters, k=10))
     jj(["bookmark", "create", tempbm, "-r", "@"], snapshot=True, suppress_stderr=True)
     jj(["new", ref], snapshot=True, suppress_stderr=True)
-    yield
-    jj(["edit", tempbm], snapshot=True, suppress_stderr=True)
-    jj(["bookmark", "forget", tempbm], suppress_stderr=True)
+    try:
+        yield
+    finally:
+        jj(["edit", tempbm], snapshot=True, suppress_stderr=True)
+        jj(["bookmark", "forget", tempbm], suppress_stderr=True)

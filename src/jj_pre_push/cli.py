@@ -16,18 +16,24 @@ def check_and_push(
         keep = jj.default_bookmarks_to_push(remote)
         bookmarks = [b for b in bookmarks if b.name in keep]
     for b in bookmarks:
-        print(f"Would push {b.name}: {b.remote_commit_id}..{b.local_commit_id}")
         with jj.checkout(b.local_commit_id):
-            subprocess.check_call(
-                [
-                    "pre-commit",
-                    "run",
-                    "--from-ref",
-                    b.remote_commit_id,
-                    "--to-ref",
-                    b.local_commit_id,
-                ]
-            )
+            if (
+                subprocess.run(
+                    [
+                        "pre-commit",
+                        "run",
+                        "--from-ref",
+                        b.remote_commit_id,
+                        "--to-ref",
+                        b.local_commit_id,
+                    ]
+                ).returncode
+                != 0
+            ):
+                print(
+                    f"pre-commit checks failed for bookmark {b.name} ({b.remote_commit_id}..{b.local_commit_id})"
+                )
+                raise typer.Exit(1)
 
 
 def main():

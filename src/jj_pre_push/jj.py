@@ -163,8 +163,8 @@ def current_change_id() -> str:
 def checkout(ref: str):
     # Create a temporary bookmark so the current change isn't destroyed if it's empty
     tempbm = "jj-pre-push-keep-" + "".join(random.choices(string.ascii_letters, k=10))
-    jj(["bookmark", "create", tempbm, "-r", "@"], snapshot=True)
-    jj(["new", ref], snapshot=True)
+    jj(["bookmark", "create", tempbm, "-r", "@"], snapshot=True, suppress_stderr=True)
+    jj(["new", ref], snapshot=True, suppress_stderr=True)
     yield
-    jj(["edit", tempbm], snapshot=True)
-    jj(["bookmark", "forget", tempbm])
+    jj(["edit", tempbm], snapshot=True, suppress_stderr=True)
+    jj(["bookmark", "forget", tempbm], suppress_stderr=True)

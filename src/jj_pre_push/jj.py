@@ -58,6 +58,9 @@ class TrackedBookmark(NamedTuple):
     local_commit_id: str
     remote_commit_id: str
 
+    def __str__(self):
+        return f"{self.name} ({self.local_commit_id[:7]}..{self.remote_commit_id[:7]})"
+
 
 def pushable_bookmarks(
     remote: str, bookmark: str | None = None, all: bool = False
@@ -170,3 +173,18 @@ def checkout(ref: str):
     finally:
         jj(["edit", tempbm], snapshot=True, suppress_stderr=True)
         jj(["bookmark", "forget", tempbm], suppress_stderr=True)
+
+
+def git_push(
+    remote: str | None = None,
+    bookmark: str | None = None,
+    all: bool = False,
+):
+    cmd = ["git", "push"]
+    if remote:
+        cmd.extend(["--remote", remote])
+    if bookmark:
+        cmd.extend(["--bookmark", bookmark])
+    if all:
+        cmd.extend(["--all"])
+    jj(cmd, snapshot=True)

@@ -17,17 +17,20 @@ def check_and_push(
         bookmarks = [b for b in bookmarks if b.name in keep]
     for b in bookmarks:
         print(f"Would push {b.name}: {b.remote_commit_id}..{b.local_commit_id}")
-        jj.jj_raw(["new", b.local_commit_id])
-        subprocess.check_call(
-            [
-                "pre-commit",
-                "run",
-                "--from-ref",
-                b.remote_commit_id,
-                "--to-ref",
-                b.local_commit_id,
-            ]
-        )
+        with jj.checkout(b.local_commit_id):
+            subprocess.check_call(["jj", "status"])
+            subprocess.check_call(["jj", "log"])
+            subprocess.check_call(["git", "status"])
+            # subprocess.check_call(
+            #     [
+            #         "pre-commit",
+            #         "run",
+            #         "--from-ref",
+            #         b.remote_commit_id,
+            #         "--to-ref",
+            #         b.local_commit_id,
+            #     ]
+            # )
 
 
 def main():

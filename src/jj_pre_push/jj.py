@@ -1,4 +1,7 @@
+from contextlib import contextmanager
 import json
+import random
+import string
 import subprocess
 import logging
 from typing import Any, Iterable, NamedTuple
@@ -6,7 +9,7 @@ from typing import Any, Iterable, NamedTuple
 logger = logging.getLogger(__name__)
 
 
-def jj_fields(
+def jj_json(
     args: list[str],
     return_fields: Iterable[str],
     snapshot: bool = False,
@@ -16,19 +19,11 @@ def jj_fields(
         + r' ++ "," ++ '.join(f"json({part})" for part in return_fields)
         + r' ++ "]\n"'
     )
-    return jj_rows(args, template=template, snapshot=snapshot)
-
-
-def jj_rows(
-    args: list[str],
-    template: str,
-    snapshot: bool = False,
-) -> list[list[str | dict]]:
-    output = jj_raw([*args, "-T", template], snapshot=snapshot)
+    output = jj([*args, "-T", template], snapshot=snapshot)
     return [json.loads(line) for line in output.splitlines()]
 
 
-def jj_raw(args: list[str], snapshot: bool = False, suppress_stderr: bool = False):
+def jj(args: list[str], snapshot: bool = False, suppress_stderr: bool = False):
     if not snapshot:
         args += ["--ignore-working-copy"]
     return (
@@ -67,6 +62,21 @@ class TrackedBookmark(NamedTuple):
 def pushable_bookmarks(
     remote: str, bookmark: str | None = None, all: bool = False
 ) -> list[TrackedBookmark]:
+    """
+    -b, --bookmark <BOOKMARK>
+            Push only this bookmark, or bookmarks matching a pattern (can be repeated)
+
+            By default, the specified name matches exactly. Use `glob:` prefix to select bookmarks by [wildcard pattern].
+
+            [wildcard pattern]: https://jj-vcs.github.io/jj/latest/revsets#string-patterns
+
+        --tracked
+            Push all tracked bookmarks
+
+            This usually means that the bookmark was already pushed to or fetched from the [relevant remote].
+
+            [relevant remote]: https://jj-vcs.github.io/jj/latest/bookmarks#remotes-and-tracked-bookmarks
+    """
     cmd = ["bookmark", "list", "--remote", remote]
     if all:
         cmd.append("--tracked")
@@ -75,7 +85,7 @@ def pushable_bookmarks(
 
     local_bms = {}
     remote_bms = {}
-    for [data] in jj_fields(cmd, return_fields=["self"]):
+    for [data] in jj_json(cmd, return_fields=["self"]):
         bm = Bookmark(**data)  # type: ignore
         (remote_bms if bm.remote else local_bms)[bm.name] = bm
 
@@ -115,7 +125,7 @@ def default_remote() -> str:
     #     This defaults to the `git.push` setting. If that is not configured, and if
     #     there are multiple remotes, the remote named "origin" will be used.
     try:
-        return jj_raw(["config", "get", "git.push"], suppress_stderr=True)
+        return jj(["config", "get", "git.push"], suppress_stderr=True)
     except subprocess.CalledProcessError:
         return "origin"
 
@@ -128,7 +138,7 @@ def default_bookmarks_to_push(remote: str) -> set[str]:
     revsets = f"bookmarks() & (remote_bookmarks(remote={json.dumps(remote)})..@)"
     return {
         json.loads(line)
-        for line in jj_raw(
+        for line in jj(
             [
                 "log",
                 "--no-graph",
@@ -141,23 +151,20 @@ def default_bookmarks_to_push(remote: str) -> set[str]:
     }
 
 
-"""
-
-  -b, --bookmark <BOOKMARK>
-          Push only this bookmark, or bookmarks matching a pattern (can be repeated)
-
-          By default, the specified name matches exactly. Use `glob:` prefix to select bookmarks by [wildcard pattern].
-
-          [wildcard pattern]: https://jj-vcs.github.io/jj/latest/revsets#string-patterns
-
-      --tracked
-          Push all tracked bookmarks
-
-          This usually means that the bookmark was already pushed to or fetched from the [relevant remote].
-
-          [relevant remote]: https://jj-vcs.github.io/jj/latest/bookmarks#remotes-and-tracked-bookmarks
-"""
-
-
 def workspace_root() -> str:
-    return jj_raw(["workspace", "root"])
+    return jj(["workspace", "root"])
+
+
+def current_change_id() -> str:
+    return jj(["log", "--no-graph", "-r", "@", "-T", "change_id"])
+
+
+@contextmanager
+def checkout(ref: str):
+    # Create a temporary bookmark so the current change isn't destroyed if it's empty
+    tempbm = "jj-pre-push-keep-" + "".join(random.choices(string.ascii_letters, k=10))
+    jj(["bookmark", "create", tempbm, "-r", "@"], snapshot=True)
+    jj(["new", ref], snapshot=True)
+    yield
+    jj(["edit", tempbm], snapshot=True)
+    jj(["bookmark", "forget", tempbm])

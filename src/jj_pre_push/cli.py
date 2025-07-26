@@ -24,6 +24,10 @@ def check(
     remote: str | None = None,
     bookmark: Annotated[str | None, typer.Option("-b", "--bookmark")] = None,
     all: bool = False,
+    deleted: bool = False,
+    allow_new: Annotated[bool, typer.Option("-N", "--allow-new")] = False,
+    revisions: Annotated[list[str], typer.Option("-r", "--revisions")] = [],
+    change: Annotated[list[str], typer.Option("-c", "--change")] = [],
 ):
     if remote is None:
         remote = jj.default_remote()

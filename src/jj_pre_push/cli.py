@@ -29,6 +29,10 @@ def check(
     revisions: Annotated[list[str], typer.Option("-r", "--revisions")] = [],
     change: Annotated[list[str], typer.Option("-c", "--change")] = [],
 ):
+    if deleted:
+        logger.info("Nothing to check for --deleted")
+        return
+
     if not (jj.workspace_root() / ".pre-commit-config.yaml").exists():
         logger.info("No pre-commit config in this repo, nothing to check.")
         return

@@ -50,5 +50,5 @@ def check_and_push(
         raise typer.Exit(e.returncode)
 
 
-def main():
+if __name__ == "__main__":
     app()

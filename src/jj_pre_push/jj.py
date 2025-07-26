@@ -59,7 +59,7 @@ class TrackedBookmark(NamedTuple):
     remote_commit_id: str
 
     def __str__(self):
-        return f"{self.name} ({self.local_commit_id[:7]}..{self.remote_commit_id[:7]})"
+        return f"{self.name} ({self.remote_commit_id[:7]}..{self.local_commit_id[:7]})"
 
 
 def default_remote() -> str:

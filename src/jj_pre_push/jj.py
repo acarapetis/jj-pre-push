@@ -1,12 +1,12 @@
 """Utility functions for controlling the jj cli."""
 
-from contextlib import contextmanager
 import json
-from pathlib import Path
+import logging
 import random
 import string
 import subprocess
-import logging
+from contextlib import contextmanager
+from pathlib import Path
 from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
@@ -66,21 +66,6 @@ def default_remote() -> str:
 def pushable_bookmarks(
     remote: str, bookmark: str | None = None, all: bool = False
 ) -> list[TrackedBookmark]:
-    """
-    -b, --bookmark <BOOKMARK>
-            Push only this bookmark, or bookmarks matching a pattern (can be repeated)
-
-            By default, the specified name matches exactly. Use `glob:` prefix to select bookmarks by [wildcard pattern].
-
-            [wildcard pattern]: https://jj-vcs.github.io/jj/latest/revsets#string-patterns
-
-        --tracked
-            Push all tracked bookmarks
-
-            This usually means that the bookmark was already pushed to or fetched from the [relevant remote].
-
-            [relevant remote]: https://jj-vcs.github.io/jj/latest/bookmarks#remotes-and-tracked-bookmarks
-    """
     cmd = ["bookmark", "list", "--remote", remote, "-T", r'json(self) ++ "\n"']
     if all:
         cmd.append("--tracked")
@@ -123,7 +108,8 @@ def pushable_bookmarks(
 
 
 def default_bookmarks_to_push(remote: str) -> set[str]:
-    """Get the names of all bookmarks that would be considered for pushing by `jj git push`."""
+    """Get the names of all bookmarks that would be considered for pushing by `jj git
+    push`."""
     # jj docs for git push:
     #     By default, pushes tracking bookmarks pointing to
     #     `remote_bookmarks(remote=<remote>)..@`

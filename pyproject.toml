@@ -28,3 +28,15 @@ pythonVersion = "3.12"
 venvPath = "."
 venv = ".venv"
 typeCheckingMode = "standard"
+
+[tool.ruff.lint]
+select = [
+    "F", "I", "RUF", 
+    "E401", "E402", 
+    "E701", "E702", "E703", 
+    "E711", "E712", "E713", "E714", "E721", 
+    "E722", 
+    "E731", 
+    "E741", "E742", "E743", 
+    "E902", 
+]

@@ -29,8 +29,13 @@ def check(
     revisions: Annotated[list[str], typer.Option("-r", "--revisions")] = [],
     change: Annotated[list[str], typer.Option("-c", "--change")] = [],
 ):
+    if not (jj.workspace_root() / ".pre-commit-config.yaml").exists():
+        logger.info("No pre-commit config in this repo, nothing to check.")
+        return
+
     if remote is None:
         remote = jj.default_remote()
+
     bookmarks = jj.pushable_bookmarks(remote, bookmark=bookmark, all=all)
     if not (bookmark or all):
         keep = jj.default_bookmarks_to_push(remote)

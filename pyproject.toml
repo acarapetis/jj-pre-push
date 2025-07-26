@@ -1,6 +1,6 @@
 [project]
 name = "jj-pre-push"
-version = "0.1.0"
+version = "0.1.0.post1"
 description = "A pre-commit integration for jj"
 readme = "README.md"
 authors = [
@@ -10,6 +10,11 @@ requires-python = ">=3.10"
 dependencies = [
     "typer-slim>=0.16.0",
 ]
+
+[project.urls]
+homepage = "https://github.com/acarapetis/jj-pre-push"
+source = "https://github.com/acarapetis/jj-pre-push"
+issues = "https://github.com/acarapetis/jj-pre-push/issues"
 
 [project.scripts]
 jj-pre-push = "jj_pre_push.cli:app"

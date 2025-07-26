@@ -46,7 +46,7 @@ wheels = [
 
 [[package]]
 name = "jj-pre-push"
-version = "0.1.0"
+version = "0.1.0.post1"
 source = { editable = "." }
 dependencies = [
     { name = "typer-slim" },

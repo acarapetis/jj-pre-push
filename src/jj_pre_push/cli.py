@@ -51,7 +51,7 @@ def check(
         success = True
         with jj.stash_change():
             for b in bookmarks:
-                logger.info(f"Checking {b}")
+                logger.info(f"Checking {b} with pre-commit...")
                 jj.new(b.local_commit_id)
                 result = subprocess.run(
                     [

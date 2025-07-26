@@ -1,12 +1,12 @@
+import logging
 import subprocess
 from typing import Annotated
-from jj_pre_push import jj
+
 import typer
-import logging
+
+from jj_pre_push import jj
 
 logger = logging.getLogger(__name__)
-
-
 app = typer.Typer()
 
 

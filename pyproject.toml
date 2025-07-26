@@ -12,7 +12,7 @@ dependencies = [
 ]
 
 [project.scripts]
-jj-pre-push = "jj_pre_push.cli:main"
+jj-pre-push = "jj_pre_push.cli:app"
 
 [project.optional-dependencies]
 pre-commit = [

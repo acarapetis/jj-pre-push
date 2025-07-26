@@ -62,6 +62,18 @@ class TrackedBookmark(NamedTuple):
         return f"{self.name} ({self.local_commit_id[:7]}..{self.remote_commit_id[:7]})"
 
 
+def default_remote() -> str:
+    """Get the name of the default git remote in the current jj repository; i.e. the
+    remote that `jj git push` would push to."""
+    # jj docs for --remote:
+    #     This defaults to the `git.push` setting. If that is not configured, and if
+    #     there are multiple remotes, the remote named "origin" will be used.
+    try:
+        return jj(["config", "get", "git.push"], suppress_stderr=True)
+    except subprocess.CalledProcessError:
+        return "origin"
+
+
 def pushable_bookmarks(
     remote: str, bookmark: str | None = None, all: bool = False
 ) -> list[TrackedBookmark]:
@@ -89,48 +101,36 @@ def pushable_bookmarks(
     local_bms = {}
     remote_bms = {}
     for [data] in jj_json(cmd, return_fields=["self"]):
-        bm = Bookmark(**data)  # type: ignore
-        (remote_bms if bm.remote else local_bms)[bm.name] = bm
+        b = Bookmark(**data)  # type: ignore
+        (remote_bms if b.remote else local_bms)[b.name] = b
 
     results = []
-    for bm in remote_bms.values():
-        if len(bm.tracking_target) > 1:
-            logger.debug(f"Bookmark {bm.name}@{remote} is conflicted, ignoring")
+    for b in remote_bms.values():
+        if len(b.tracking_target) > 1:
+            logger.debug(f"Bookmark {b.name}@{remote} is conflicted, ignoring")
             continue
 
         results.append(
             TrackedBookmark(
-                name=bm.name,
-                local_commit_id=bm.tracking_target[0],
-                remote_commit_id=bm.target[0],
+                name=b.name,
+                local_commit_id=b.tracking_target[0],
+                remote_commit_id=b.target[0],
             )
         )
 
     if all:
         # Find local bookmarks new to this remote
-        for bm in local_bms.values():
-            if bm.name not in remote_bms:
+        for b in local_bms.values():
+            if b.name not in remote_bms:
                 results.append(
                     TrackedBookmark(
-                        name=bm.name,
-                        local_commit_id=bm.target[0],
-                        remote_commit_id=bm.target[0],
+                        name=b.name,
+                        local_commit_id=b.target[0],
+                        remote_commit_id=b.target[0],
                     )
                 )
 
-    return results
-
-
-def default_remote() -> str:
-    """Get the name of the default git remote in the current jj repository; i.e. the
-    remote that `jj git push` would push to."""
-    # jj docs for --remote:
-    #     This defaults to the `git.push` setting. If that is not configured, and if
-    #     there are multiple remotes, the remote named "origin" will be used.
-    try:
-        return jj(["config", "get", "git.push"], suppress_stderr=True)
-    except subprocess.CalledProcessError:
-        return "origin"
+    return [b for b in results if b.local_commit_id != b.remote_commit_id]
 
 
 def default_bookmarks_to_push(remote: str) -> set[str]:

@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import json
+from pathlib import Path
 import random
 import string
 import subprocess
@@ -155,11 +156,8 @@ def default_bookmarks_to_push(remote: str) -> set[str]:
     }
 
 
-def workspace_root() -> str:
-    return jj(
-        ["workspace", "root"],
-        snapshot=False,
-    )
+def workspace_root() -> Path:
+    return Path(jj(["workspace", "root"], snapshot=False).strip())
 
 
 def current_change_id() -> str:

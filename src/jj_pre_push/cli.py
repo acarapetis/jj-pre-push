@@ -22,7 +22,7 @@ def callback(verbose: Annotated[bool, typer.Option("--verbose", "-v")] = False):
 )
 def check(
     remote: str | None = None,
-    bookmark: str | None = None,
+    bookmark: Annotated[str | None, typer.Option("-b", "--bookmark")] = None,
     all: bool = False,
 ):
     if remote is None:
@@ -34,22 +34,31 @@ def check(
 
     if not bookmarks:
         logger.info("No bookmarks would be pushed, nothing to check.")
-    for b in bookmarks:
-        logger.info(f"Checking {b}")
-        with jj.checkout(b.local_commit_id):
-            result = subprocess.run(
-                [
-                    "pre-commit",
-                    "run",
-                    "--from-ref",
-                    b.remote_commit_id,
-                    "--to-ref",
-                    b.local_commit_id,
-                ]
-            )
-            if result.returncode != 0:
-                logger.error(f"pre-commit checks failed for bookmark {b}")
-                raise typer.Exit(1)
+    else:
+        success = True
+        with jj.stash_change():
+            for b in bookmarks:
+                logger.info(f"Checking {b}")
+                jj.new(b.local_commit_id)
+                result = subprocess.run(
+                    [
+                        "pre-commit",
+                        "run",
+                        "--from-ref",
+                        b.remote_commit_id,
+                        "--to-ref",
+                        b.local_commit_id,
+                    ]
+                )
+                if result.returncode != 0:
+                    logger.error(f"pre-commit checks failed for bookmark {b}")
+                    success = False
+
+        if success:
+            logger.info("All checks passed.")
+        else:
+            logger.error("One or more checks failed, please fix before pushing.")
+            raise typer.Exit(1)
 
 
 # @app.command()

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def jj_json(
     args: list[str],
     return_fields: Iterable[str],
-    snapshot: bool = False,
+    snapshot: bool = True,
 ) -> list[list[str | dict[str, Any]]]:
     template = (
         r'"[" ++ '
@@ -23,7 +23,7 @@ def jj_json(
     return [json.loads(line) for line in output.splitlines()]
 
 
-def jj(args: list[str], snapshot: bool = False, suppress_stderr: bool = False):
+def jj(args: list[str], snapshot: bool = True, suppress_stderr: bool = False):
     if not snapshot:
         args += ["--ignore-working-copy"]
     return (
@@ -69,7 +69,7 @@ def default_remote() -> str:
     #     This defaults to the `git.push` setting. If that is not configured, and if
     #     there are multiple remotes, the remote named "origin" will be used.
     try:
-        return jj(["config", "get", "git.push"], suppress_stderr=True)
+        return jj(["config", "get", "git.push"], suppress_stderr=True, snapshot=False)
     except subprocess.CalledProcessError:
         return "origin"
 
@@ -149,29 +149,40 @@ def default_bookmarks_to_push(remote: str) -> set[str]:
                 revsets,
                 "-T",
                 'remote_bookmarks.map(|b| json(b.name())).join("\n") ++ "\n"',
-            ]
+            ],
+            snapshot=False,
         ).splitlines()
     }
 
 
 def workspace_root() -> str:
-    return jj(["workspace", "root"])
+    return jj(
+        ["workspace", "root"],
+        snapshot=False,
+    )
 
 
 def current_change_id() -> str:
-    return jj(["log", "--no-graph", "-r", "@", "-T", "change_id"])
+    return jj(["log", "--no-graph", "-r", "@", "-T", "change_id"], snapshot=False)
+
+
+def new(ref: str | None = None):
+    cmd = ["new"]
+    if ref:
+        cmd.append(ref)
+    jj(cmd)
 
 
 @contextmanager
-def checkout(ref: str):
+def stash_change():
+    """Remember the working copy commit and return to it at the end of the context."""
     # Create a temporary bookmark so the current change isn't destroyed if it's empty
     tempbm = "jj-pre-push-keep-" + "".join(random.choices(string.ascii_letters, k=10))
-    jj(["bookmark", "create", tempbm, "-r", "@"], snapshot=True, suppress_stderr=True)
-    jj(["new", ref], snapshot=True, suppress_stderr=True)
+    jj(["bookmark", "create", tempbm, "-r", "@"], suppress_stderr=True)
     try:
         yield
     finally:
-        jj(["edit", tempbm], snapshot=True, suppress_stderr=True)
+        jj(["edit", tempbm], suppress_stderr=True)
         jj(["bookmark", "forget", tempbm], suppress_stderr=True)
 
 
@@ -187,4 +198,4 @@ def git_push(
         cmd.extend(["--bookmark", bookmark])
     if all:
         cmd.extend(["--all"])
-    jj(cmd, snapshot=True)
+    jj(cmd)

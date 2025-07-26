@@ -61,18 +61,5 @@ def check(
             raise typer.Exit(1)
 
 
-# @app.command()
-# def check_and_push(
-#     remote: str | None = None,
-#     bookmark: str | None = None,
-#     all: bool = False,
-# ):
-#     check(remote, bookmark, all)
-#     try:
-#         jj.git_push(remote, bookmark, all)
-#     except subprocess.CalledProcessError as e:
-#         raise typer.Exit(e.returncode)
-#
-#
 if __name__ == "__main__":
     app()

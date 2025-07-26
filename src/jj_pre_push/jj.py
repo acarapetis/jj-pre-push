@@ -1,3 +1,5 @@
+"""Utility functions for controlling the jj cli."""
+
 from contextlib import contextmanager
 import json
 from pathlib import Path
@@ -5,23 +7,9 @@ import random
 import string
 import subprocess
 import logging
-from typing import Any, Iterable, NamedTuple
+from typing import NamedTuple
 
 logger = logging.getLogger(__name__)
-
-
-def jj_json(
-    args: list[str],
-    return_fields: Iterable[str],
-    snapshot: bool = True,
-) -> list[list[str | dict[str, Any]]]:
-    template = (
-        r'"[" ++ '
-        + r' ++ "," ++ '.join(f"json({part})" for part in return_fields)
-        + r' ++ "]\n"'
-    )
-    output = jj([*args, "-T", template], snapshot=snapshot)
-    return [json.loads(line) for line in output.splitlines()]
 
 
 def jj(args: list[str], snapshot: bool = True, suppress_stderr: bool = False):
@@ -93,7 +81,7 @@ def pushable_bookmarks(
 
             [relevant remote]: https://jj-vcs.github.io/jj/latest/bookmarks#remotes-and-tracked-bookmarks
     """
-    cmd = ["bookmark", "list", "--remote", remote]
+    cmd = ["bookmark", "list", "--remote", remote, "-T", r'json(self) ++ "\n"']
     if all:
         cmd.append("--tracked")
     if bookmark:
@@ -101,8 +89,8 @@ def pushable_bookmarks(
 
     local_bms = {}
     remote_bms = {}
-    for [data] in jj_json(cmd, return_fields=["self"]):
-        b = Bookmark(**data)  # type: ignore
+    for line in jj(cmd, snapshot=False).splitlines():
+        b = Bookmark(**json.loads(line))  # type: ignore
         (remote_bms if b.remote else local_bms)[b.name] = b
 
     results = []

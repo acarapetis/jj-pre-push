@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @dataclass(slots=True, frozen=True)
-class JJError(subprocess.SubprocessError):
+class JJError(Exception):
     message: str
     returncode: int
 

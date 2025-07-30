@@ -51,3 +51,18 @@ push = ["util", "exec", "--", "uvx", "jj-pre-push", "push"]
 Otherwise, install the PyPI package `jj-pre-push` in whichever way you prefer; e.g. `uv tool
 install jj-pre-push` or `pip install jj-pre-push`. (Or clone this repository and install
 it in editable mode if you want to hack on it.)
+
+## Usage with jjui
+
+If you're a [jjui](https://github.com/idursun/jjui) fan (I think maybe you should be!),
+here's an example `jjui/config.toml` snippet showing how you can define custom commands
+to invoke jj-pre-push: one to perform the default `jj push`, and one to push the
+bookmarks attached to the change you have currently selected in the UI.
+
+```toml
+[custom_commands]
+"jj push" = { key = ["p"], args = ["push"] }
+"jj push selected bookmark(s)" = { key = ["P"], args = ["push", "-r", "$change_id"] }
+```
+
+Note that these depend upon the `jj push` alias defined in the previous section.

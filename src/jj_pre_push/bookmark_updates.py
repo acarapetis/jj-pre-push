@@ -14,6 +14,7 @@ BookmarkUpdateType = Literal[
 
 @dataclass(slots=True, frozen=True)
 class BookmarkUpdate:
+    remote: str
     bookmark: str
     update_type: BookmarkUpdateType
     old_commit: str | None = None
@@ -30,6 +31,7 @@ class BookmarkUpdate:
 # arguments.
 # TODO: Consider parsing more rigidly?
 # If the wording changes in the future, it's better to fail than to parse incorrectly!
+_remote_pattern = re.compile(r"^Changes to push to (.+?):")
 _bookmark_update_patterns: dict[BookmarkUpdateType, re.Pattern] = {
     "move_forward": re.compile(
         r"Move forward bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"
@@ -48,12 +50,23 @@ _bookmark_update_patterns: dict[BookmarkUpdateType, re.Pattern] = {
 def parse_git_push_dry_run(output: str) -> set[BookmarkUpdate]:
     """Extract bookmark change details from `jj git push --dry-run`."""
 
-    return {
-        BookmarkUpdate(**match.groupdict(), update_type=update_type)
-        for line in output.splitlines()
-        for (update_type, pattern) in _bookmark_update_patterns.items()
-        if (match := pattern.search(line))
-    }
+    updates = set()
+    remote = None
+    for line in output.splitlines():
+        if match := _remote_pattern.search(line):
+            remote = match.group(1)
+        for update_type, pattern in _bookmark_update_patterns.items():
+            if match := pattern.search(line):
+                if remote is None:
+                    raise ValueError(
+                        "Unexpected line ordering in jj git push --dry-run"
+                    )
+                updates.add(
+                    BookmarkUpdate(
+                        **match.groupdict(), remote=remote, update_type=update_type
+                    )
+                )
+    return updates
 
 
 def get_remote_bookmark_updates(jj_git_push_args: list[str]) -> set[BookmarkUpdate]:

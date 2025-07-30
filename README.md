@@ -23,14 +23,14 @@ Use `jj-pre-push push` (or an alias - personally I use `jj push`) as a replaceme
    and how they would change.
 2. For each of these bookmarks in turn:
    - Checks out the bookmark to the working copy
-   - Runs the pre-push hooks defined in your .pre-commit-config.yaml on the files that
-     have changed between the remote branch's old and new states. (This is for forward
-     movements of existing branches; for sideways/backwards movements and new branches
-     we currently check all files.)
-   - Reports any failures; and if any files were modified reports the change ID in which
-     these modifications can be found
+   - Runs the pre-push hooks defined in your .pre-commit-config.yaml on the same set of
+     files pre-commit would when pushing the same change. (For existing branches that's
+     the files touched in the range `old`...`new`; for new branches it's the files
+     touched in all ancestors of `new` that aren't present on the remote.)
+   - Reports any failures; and if any files were modified reports the change ID(s) in which
+     these modifications can be found.
 3. If all hooks succeeded on all branches, executes `jj git push` with the arguments
-   provided.
+   provided; otherwise nothing is pushed.
 4. Returns the working copy to its original change.
 
 If there is no .pre-commit-config.yaml in your workspace root, `jj-pre-push push`

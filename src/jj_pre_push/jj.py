@@ -51,14 +51,22 @@ def workspace_root() -> Path:
 @dataclass(slots=True, frozen=True)
 class ChangeSummary:
     change_id: str
+    commit_id: str
     empty: bool
 
 
 def current_change() -> ChangeSummary:
-    template = r'empty ++ "\n" ++ change_id.shortest(8)'
-    output = jj(["log", "--no-graph", "-r", "@", "-T", template])
-    empty, change_id = output.splitlines()
-    return ChangeSummary(change_id=change_id, empty=empty == "true")
+    return get_changes("@")[0]
+
+
+def get_changes(revset: str) -> list[ChangeSummary]:
+    template = r'empty ++ "," ++ change_id.shortest(8) ++ "," ++ commit_id.shortest(12) ++ "\n"'
+    output = jj(["log", "--no-graph", "-r", revset, "-T", template])
+    return [
+        ChangeSummary(change_id=change_id, commit_id=commit_id, empty=empty == "true")
+        for line in output.splitlines()
+        for empty, change_id, commit_id in [line.split(",")]
+    ]
 
 
 def new(ref: str | None = None):

@@ -34,13 +34,13 @@ def check(ctx: typer.Context):
         raise typer.Exit(e.returncode)
 
     if not updates:
-        logger.info("No bookmarks would be pushed, nothing to check.")
+        logger.info("No bookmarks will be pushed, nothing to check.")
         return
 
     updates = {u for u in updates if u.update_type != "delete"}
 
     if not updates:
-        logger.info("Only deletions would be pushed, nothing to check.")
+        logger.info("Only deletions will be pushed, nothing to check.")
         return
 
     success = True
@@ -51,32 +51,42 @@ def check(ctx: typer.Context):
             logger.info(f"{u}: checking with pre-commit...")
             jj.new(u.new_commit)
 
-            # Even though pre-commit is python, we call it as a subprocess so that
-            # we use whatever version the user has installed on their PATH - seems
-            # like the least surprising thing to do.
-
-            if u.update_type == "move_forward" and u.old_commit is not None:
-                # Just check the files changed since the last push
-                opts = ["--from-ref", u.old_commit, "--to-ref", u.new_commit]
+            if u.old_commit is not None:
+                # Just check old...new.
+                # pre-commit's pre-push hook does this, so we do the same.
+                from_refs = [u.old_commit]
             else:
-                # For new branches or force-pushes, just check everything.
-                # TODO: Could potentially extract the list of differing files from
-                # jj/git and pass this to pre-commit's --files? Haven't thought it
-                # through all the way yet.
-                opts = ["--all-files"]
+                # For new branches, pre-commit finds the first ancestor of the new
+                # bookmark's target that isn't already on the remote, then diffs from
+                # its parent. Really we should consider the possibility of a local merge
+                # derived from multiple remote heads; so:
+                on_remote = f"(::remote_bookmarks(remote={u.remote}))"
+                our_remote_heads = f"heads(::{u.new_commit} & {on_remote})"
+                from_refs = [c.commit_id for c in jj.get_changes(our_remote_heads)]
 
-            result = subprocess.run(
-                ["pre-commit", "run", "--hook-stage", "pre-push", *opts]
-            )
-            if result.returncode != 0:
-                success = False
-                change = jj.current_change()
-                if change.empty:
-                    logger.error(f"{u}: pre-commit failed but changed no files.")
-                else:
-                    logger.error(
-                        f"{u}: pre-commit changed some files, see {change.change_id}"
-                    )
+            # Usually there will just be one from_ref (and in fact pre-commit seems
+            # to just assume this is always the case); but it's possible the local
+            # branch is a merge of two local branches started from distinct remote
+            # branches. In this rare case we run once per root. Would be more efficient
+            # to union the lists of changed files I guess?
+            for from_ref in from_refs:
+                logger.info(f"Running pre-commit on {from_ref}...{u.new_commit}")
+                # Even though pre-commit is python, we call it as a subprocess so that
+                # we use whatever version the user has installed on their PATH - seems
+                # like the least surprising thing to do.
+                ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
+                result = subprocess.run(
+                    ["pre-commit", "run", "--hook-stage", "pre-push", *ref_opts]
+                )
+                if result.returncode != 0:
+                    success = False
+                    change = jj.current_change()
+                    if change.empty:
+                        logger.error(f"{u}: pre-commit failed but changed no files.")
+                    else:
+                        logger.error(
+                            f"{u}: pre-commit changed some files, see {change.change_id}"
+                        )
 
     if success:
         logger.info("All checks passed.")

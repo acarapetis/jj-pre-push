@@ -12,9 +12,15 @@ Changes to push to origin:
 Dry-run requested, not pushing.
 """
     assert parse_git_push_dry_run(output) == {
-        BookmarkUpdate("main", "move_forward", "d964e724c76e", "a81d749233ff"),
-        BookmarkUpdate("painstaking", "add", None, "591f7e9aae85"),
-        BookmarkUpdate("sideways", "move_sideways", "9c712e75a982", "23f89ce4b31b"),
-        BookmarkUpdate("backward", "move_backward", "d964e724c76e", "561998a40ada"),
-        BookmarkUpdate("deleted", "delete", "9c712e75a982"),
+        BookmarkUpdate(
+            "origin", "main", "move_forward", "d964e724c76e", "a81d749233ff"
+        ),
+        BookmarkUpdate("origin", "painstaking", "add", None, "591f7e9aae85"),
+        BookmarkUpdate(
+            "origin", "sideways", "move_sideways", "9c712e75a982", "23f89ce4b31b"
+        ),
+        BookmarkUpdate(
+            "origin", "backward", "move_backward", "d964e724c76e", "561998a40ada"
+        ),
+        BookmarkUpdate("origin", "deleted", "delete", "9c712e75a982"),
     }

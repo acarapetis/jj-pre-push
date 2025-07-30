@@ -49,7 +49,6 @@ def check(ctx: typer.Context):
             assert u.new_commit is not None
 
             logger.info(f"{u}: checking with pre-commit...")
-            jj.new(u.new_commit)
 
             if u.old_commit is not None:
                 # Just check old...new.
@@ -70,6 +69,7 @@ def check(ctx: typer.Context):
             # branches. In this rare case we run once per root. Would be more efficient
             # to union the lists of changed files I guess?
             for from_ref in from_refs:
+                jj.new(u.new_commit)
                 logger.info(f"Running pre-commit on {from_ref}...{u.new_commit}")
                 # Even though pre-commit is python, we call it as a subprocess so that
                 # we use whatever version the user has installed on their PATH - seems

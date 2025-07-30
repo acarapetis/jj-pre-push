@@ -36,6 +36,9 @@ Use `jj-pre-push push` (or an alias - personally I use `jj push`) as a replaceme
 If there is no .pre-commit-config.yaml in your workspace root, `jj-pre-push push`
 immediately delegates to `jj git push`.
 
+By default `jj-pre-push` produces no console output of its own unless hooks fail. If
+you'd like to see more details about what's happening, you can use `jj-pre-push
+--log-level=INFO push`.
 
 ## Installation
 
@@ -49,8 +52,8 @@ push = ["util", "exec", "--", "uvx", "jj-pre-push", "push"]
 ```
 
 Otherwise, install the PyPI package `jj-pre-push` in whichever way you prefer; e.g. `uv tool
-install jj-pre-push` or `pip install jj-pre-push`. (Or clone this repository and install
-it in editable mode if you want to hack on it.)
+install jj-pre-push` or `pip install jj-pre-push`, and use `jj-pre-push push` as
+described earlier.
 
 ## Usage with jjui
 

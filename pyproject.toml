@@ -1,6 +1,6 @@
 [project]
 name = "jj-pre-push"
-version = "0.2.1.post1"
+version = "0.2.2"
 description = "A pre-commit integration for jj"
 readme = "README.md"
 authors = [

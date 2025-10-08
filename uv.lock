@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.10"
 
 [[package]]
@@ -46,7 +46,7 @@ wheels = [
 
 [[package]]
 name = "jj-pre-push"
-version = "0.2.1.post1"
+version = "0.2.2"
 source = { editable = "." }
 dependencies = [
     { name = "typer-slim" },

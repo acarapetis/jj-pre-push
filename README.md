@@ -69,3 +69,10 @@ bookmarks attached to the change you have currently selected in the UI.
 ```
 
 Note that these depend upon the `jj push` alias defined in the previous section.
+
+## Usage with prek
+
+You can use jj-pre-push with any checker that has a CLI compatible with pre-commit, for
+example [prek](https://github.com/j178/prek): specify the name of the checker program on
+the command-line as `jj-pre-push --checker prek ...`, or set the environment variable
+`JJ_PRE_PUSH_CHECKER=prek`.

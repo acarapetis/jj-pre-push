@@ -9,19 +9,23 @@ from .bookmark_updates import get_remote_bookmark_updates
 
 logger = logging.getLogger(__name__)
 app = typer.Typer()
+state = {"checker": "pre-commit"}
 
 
 @app.callback()
 def callback(
     log_level: Annotated[str, typer.Option(envvar="JJ_PRE_PUSH_LOG_LEVEL")] = "WARNING",
+    checker: Annotated[str, typer.Option(envvar="JJ_PRE_PUSH_CHECKER")] = "pre-commit",
 ):
     logging.basicConfig(format="jj-pre-push: %(message)s", level=log_level)
+    state["checker"] = checker
 
 
 @app.command(
     context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
 )
 def check(ctx: typer.Context):
+    checker = state["checker"]
     push_args = ctx.args
     if not (jj.workspace_root() / ".pre-commit-config.yaml").exists():
         logger.info("No pre-commit config in this repo, nothing to check.")
@@ -48,7 +52,7 @@ def check(ctx: typer.Context):
         for u in updates:
             assert u.new_commit is not None
 
-            logger.info(f"{u}: checking with pre-commit...")
+            logger.info(f"{u}: checking with {checker}...")
 
             if u.old_commit is not None:
                 # Just check old...new.
@@ -70,22 +74,22 @@ def check(ctx: typer.Context):
             # to union the lists of changed files I guess?
             for from_ref in from_refs:
                 jj.new(u.new_commit)
-                logger.info(f"Running pre-commit on {from_ref}...{u.new_commit}")
+                logger.info(f"Running {checker} on {from_ref}...{u.new_commit}")
                 # Even though pre-commit is python, we call it as a subprocess so that
                 # we use whatever version the user has installed on their PATH - seems
                 # like the least surprising thing to do.
                 ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
                 result = subprocess.run(
-                    ["pre-commit", "run", "--hook-stage", "pre-push", *ref_opts]
+                    [checker, "run", "--hook-stage", "pre-push", *ref_opts]
                 )
                 if result.returncode != 0:
                     success = False
                     change = jj.current_change()
                     if change.empty:
-                        logger.error(f"{u}: pre-commit failed but changed no files.")
+                        logger.error(f"{u}: {checker} failed but changed no files.")
                     else:
                         logger.error(
-                            f"{u}: pre-commit changed some files, see {change.change_id}"
+                            f"{u}: {checker} changed some files, see {change.change_id}"
                         )
 
     if success:

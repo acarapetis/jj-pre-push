@@ -72,9 +72,7 @@ def parse_git_push_dry_run(output: str) -> set[BookmarkUpdate]:
 def get_remote_bookmark_updates(jj_git_push_args: list[str]) -> set[BookmarkUpdate]:
     """Given a list of CLI arguments to `jj git push`, determine the set of bookmark
     updates that would be pushed to the git remote."""
-    output = jj(
-        ["git", "push", "--dry-run", *jj_git_push_args],
-        snapshot=False,
-        capture_stderr=True,
-    )
+    args = ["git", "push", "--dry-run", *jj_git_push_args]
+    output = jj(args, snapshot=False, capture_stderr=True)
+    logger.debug(f"Output of {args}:\n{output}")
     return parse_git_push_dry_run(output)

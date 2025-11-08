@@ -7,6 +7,7 @@ import subprocess
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Literal
 
 logger = logging.getLogger(__name__)
 
@@ -22,11 +23,14 @@ def jj(
     snapshot: bool = True,
     suppress_stderr: bool = False,
     capture_stderr: bool = False,
+    color: Literal["always", "never", "debug", "auto"] | None = "never",
 ) -> str:
     """Run a `jj` CLI command and capture its output."""
     cmd = ["jj", *args]
     if not snapshot:
         cmd.extend(["--ignore-working-copy"])
+    if color is not None:
+        cmd.extend(["--color", color])
     logger.debug(cmd)
 
     if capture_stderr:

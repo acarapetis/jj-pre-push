@@ -63,7 +63,7 @@ def check(ctx: typer.Context):
                 # bookmark's target that isn't already on the remote, then diffs from
                 # its parent. Really we should consider the possibility of a local merge
                 # derived from multiple remote heads; so:
-                on_remote = f"(::remote_bookmarks(remote={u.remote}))"
+                on_remote = f"(::remote_bookmarks(remote=exact:{u.remote}))"
                 our_remote_heads = f"heads(::{u.new_commit} & {on_remote})"
                 from_refs = [c.commit_id for c in jj.get_changes(our_remote_heads)]
 

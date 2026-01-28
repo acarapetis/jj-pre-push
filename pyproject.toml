@@ -1,6 +1,6 @@
 [project]
 name = "jj-pre-push"
-version = "0.3.3"
+version = "0.3.4"
 description = "A pre-commit integration for jj"
 readme = "README.md"
 authors = [
@@ -28,7 +28,7 @@ dev = [
 ]
 
 [build-system]
-requires = ["uv_build>=0.8.2,<0.10.0"]
+requires = ["uv_build>=0.8.2,<0.11.0"]
 build-backend = "uv_build"
 
 [tool.pyright]

@@ -58,14 +58,37 @@ described earlier.
 ## Usage with jjui
 
 If you're a [jjui](https://github.com/idursun/jjui) fan (I think maybe you should be!),
-here's an example `jjui/config.toml` snippet showing how you can define custom commands
+here's an example `jjui/config.toml` snippet showing how you can define custom actions
 to invoke jj-pre-push: one to perform the default `jj push`, and one to push the
-bookmarks attached to the change you have currently selected in the UI.
+bookmarks attached to the change you have currently selected in the UI. I've also added
+some examples of key sequence bindings to perform these actions.
 
 ```toml
-[custom_commands]
-"jj push" = { key = ["p"], args = ["push"] }
-"jj push selected bookmark(s)" = { key = ["P"], args = ["push", "-r", "$change_id"] }
+[[actions]]
+name = "jj-push"
+lua = '''
+  jj_async("push")
+  revisions.refresh()
+'''
+
+[[actions]]
+name = "jj-push-selected"
+lua = '''
+  jj_async("push", "-r", context.commit_id())
+  revisions.refresh()
+'''
+
+[[bindings]]
+action = "jj-push"
+seq = ["x", "p"]
+scope = "revisions"
+desc = "jj push"
+
+[[bindings]]
+action = "jj-push-selected"
+seq = ["x", "P"]
+scope = "revisions"
+desc = "jj push selected bookmark(s)"
 ```
 
 Note that these depend upon the `jj push` alias defined in the previous section.

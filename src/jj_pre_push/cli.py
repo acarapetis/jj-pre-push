@@ -27,14 +27,22 @@ def callback(
 def check(ctx: typer.Context):
     checker = state["checker"]
     push_args = ctx.args
-    if not (jj.workspace_root() / ".pre-commit-config.yaml").exists():
+    try:
+        root = jj.workspace_root()
+    except jj.JJError as e:
+        if e.message:
+            logger.error(e.message)
+        raise typer.Exit(e.returncode)
+
+    if not (root / ".pre-commit-config.yaml").exists():
         logger.info("No pre-commit config in this repo, nothing to check.")
         return
 
     try:
         updates = get_remote_bookmark_updates(push_args)
     except jj.JJError as e:
-        logger.error(e.message)
+        if e.message:
+            logger.error(e.message)
         raise typer.Exit(e.returncode)
 
     if not updates:

@@ -7,9 +7,7 @@ from .jj import jj
 
 logger = logging.getLogger(__name__)
 
-BookmarkUpdateType = Literal[
-    "move_forward", "move_backward", "move_sideways", "add", "delete"
-]
+BookmarkUpdateType = Literal["move_forward", "move_backward", "move_sideways", "add", "delete"]
 
 
 @dataclass(slots=True, frozen=True)
@@ -58,13 +56,9 @@ def parse_git_push_dry_run(output: str) -> set[BookmarkUpdate]:
         for update_type, pattern in _bookmark_update_patterns.items():
             if match := pattern.search(line):
                 if remote is None:
-                    raise ValueError(
-                        "Unexpected line ordering in jj git push --dry-run"
-                    )
+                    raise ValueError("Unexpected line ordering in jj git push --dry-run")
                 updates.add(
-                    BookmarkUpdate(
-                        **match.groupdict(), remote=remote, update_type=update_type
-                    )
+                    BookmarkUpdate(**match.groupdict(), remote=remote, update_type=update_type)
                 )
     return updates
 

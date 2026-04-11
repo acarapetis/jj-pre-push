@@ -37,6 +37,9 @@ venvPath = "."
 venv = ".venv"
 typeCheckingMode = "standard"
 
+[tool.ruff]
+line-length = 100
+
 [tool.ruff.lint]
 # Ruff defaults + I + RUF.
 # Pinning them all explicitly to avoid automatically adopting future defaults.

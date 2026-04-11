@@ -107,9 +107,7 @@ def check(ctx: typer.Context):
         raise typer.Exit(1)
 
 
-@app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
-)
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def push(ctx: typer.Context, help: bool = False, dry_run: bool = False):
     push_args = ctx.args
 

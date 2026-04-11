@@ -1,6 +1,7 @@
 import logging
 import subprocess
-from typing import Annotated
+from dataclasses import dataclass
+from typing import Annotated, Literal, cast
 
 import typer
 
@@ -9,23 +10,46 @@ from .bookmark_updates import get_remote_bookmark_updates
 
 logger = logging.getLogger(__name__)
 app = typer.Typer()
-state = {"checker": "pre-commit"}
+
+Mode = Literal["default", "remote-ancestors"]
+
+
+@dataclass
+class Settings:
+    checker: str
+    mode: Mode
 
 
 @app.callback()
 def callback(
+    ctx: typer.Context,
     log_level: Annotated[str, typer.Option(envvar="JJ_PRE_PUSH_LOG_LEVEL")] = "WARNING",
-    checker: Annotated[str, typer.Option(envvar="JJ_PRE_PUSH_CHECKER")] = "pre-commit",
+    checker: Annotated[
+        str,
+        typer.Option(
+            envvar="JJ_PRE_PUSH_CHECKER", help="Executable to call to run checks (e.g. prek)"
+        ),
+    ] = "pre-commit",
+    mode: Annotated[
+        Mode,
+        typer.Option(
+            envvar="JJ_PRE_PUSH_MODE",
+            help="EXPERIMENTAL: Determines which files to check. "
+            "default: use pre-commit's default logic for pre-push hooks. "
+            "remote-ancestors: files changed since the most recent ancestors already present on the remote.",
+        ),
+    ] = "default",
 ):
     logging.basicConfig(format="jj-pre-push: %(message)s", level=log_level)
-    state["checker"] = checker
+    ctx.obj = Settings(
+        checker=checker,
+        mode=mode,
+    )
 
 
-@app.command(
-    context_settings={"allow_extra_args": True, "ignore_unknown_options": True}
-)
+@app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def check(ctx: typer.Context):
-    checker = state["checker"]
+    settings = cast(Settings, ctx.obj)
     push_args = ctx.args
     try:
         root = jj.workspace_root()
@@ -60,11 +84,10 @@ def check(ctx: typer.Context):
         for u in updates:
             assert u.new_commit is not None
 
-            logger.info(f"{u}: checking with {checker}...")
-
-            if u.old_commit is not None:
+            logger.info(f"{u}: checking with {settings.checker}...")
+            if settings.mode == "default" and u.old_commit is not None:
                 # Just check old...new.
-                # pre-commit's pre-push hook does this, so we do the same.
+                # pre-commit's pre-push hook does this, so we default to the same.
                 from_refs = [u.old_commit]
             else:
                 # For new branches, pre-commit finds the first ancestor of the new
@@ -82,22 +105,22 @@ def check(ctx: typer.Context):
             # to union the lists of changed files I guess?
             for from_ref in from_refs:
                 jj.new(u.new_commit)
-                logger.info(f"Running {checker} on {from_ref}...{u.new_commit}")
+                logger.info(f"Running {settings.checker} on {from_ref}...{u.new_commit}")
                 # Even though pre-commit is python, we call it as a subprocess so that
                 # we use whatever version the user has installed on their PATH - seems
                 # like the least surprising thing to do.
                 ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
                 result = subprocess.run(
-                    [checker, "run", "--hook-stage", "pre-push", *ref_opts]
+                    [settings.checker, "run", "--hook-stage", "pre-push", *ref_opts]
                 )
                 if result.returncode != 0:
                     success = False
                     change = jj.current_change()
                     if change.empty:
-                        logger.error(f"{u}: {checker} failed but changed no files.")
+                        logger.error(f"{u}: {settings.checker} failed but changed no files.")
                     else:
                         logger.error(
-                            f"{u}: {checker} changed some files, see {change.change_id}"
+                            f"{u}: {settings.checker} changed some files, see {change.change_id}"
                         )
 
     if success:

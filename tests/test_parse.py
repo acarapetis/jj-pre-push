@@ -4,11 +4,11 @@ from jj_pre_push.bookmark_updates import BookmarkUpdate, parse_git_push_dry_run
 def test_parse_git_push_dry_run():
     output = """\
 Changes to push to origin:
-  Move forward bookmark main from d964e724c76e to a81d749233ff
-  Add bookmark painstaking to 591f7e9aae85
-  Move sideways bookmark sideways from 9c712e75a982 to 23f89ce4b31b
-  Move backward bookmark backward from d964e724c76e to 561998a40ada
-  Delete bookmark deleted from 9c712e75a982
+  bookmark: main [move forward from d964e724c76e to a81d749233ff]
+  bookmark: painstaking [add to 591f7e9aae85]
+  bookmark: sideways [move sideways from 9c712e75a982 to 23f89ce4b31b]
+  bookmark: backward [move backward from d964e724c76e to 561998a40ada]
+  bookmark: deleted [delete from 9c712e75a982]
 Dry-run requested, not pushing.
 """
     assert parse_git_push_dry_run(output) == {

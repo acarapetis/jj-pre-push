@@ -11,7 +11,19 @@ Changes to push to origin:
   bookmark: deleted [delete from 9c712e75a982]
 Dry-run requested, not pushing.
 """
-    assert parse_git_push_dry_run(output) == {
+
+    # Also test the output format used up through JJ v0.44.0.
+    legacy_output = """\
+Changes to push to origin:
+  Move forward bookmark main from d964e724c76e to a81d749233ff
+  Add bookmark painstaking to 591f7e9aae85
+  Move sideways bookmark sideways from 9c712e75a982 to 23f89ce4b31b
+  Move backward bookmark backward from d964e724c76e to 561998a40ada
+  Delete bookmark deleted from 9c712e75a982
+Dry-run requested, not pushing.
+"""
+
+    expected = {
         BookmarkUpdate(
             "origin", "main", "move_forward", "d964e724c76e", "a81d749233ff"
         ),
@@ -24,3 +36,6 @@ Dry-run requested, not pushing.
         ),
         BookmarkUpdate("origin", "deleted", "delete", "9c712e75a982"),
     }
+
+    for output in [output, legacy_output]:
+        assert parse_git_push_dry_run(output) == expected

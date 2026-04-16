@@ -32,24 +32,36 @@ class BookmarkUpdate:
 _remote_pattern = re.compile(r"^Changes to push to (.+?):")
 _bookmark_update_patterns: dict[BookmarkUpdateType, list[re.Pattern]] = {
     "move_forward": [
-        re.compile(r"Move forward bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"),
-        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move forward from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]")
+        re.compile(
+            r"Move forward bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"
+        ),
+        re.compile(
+            r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move forward from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]"
+        ),
     ],
     "move_backward": [
-        re.compile(r"Move backward bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"),
-        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move backward from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]")
+        re.compile(
+            r"Move backward bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"
+        ),
+        re.compile(
+            r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move backward from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]"
+        ),
     ],
     "move_sideways": [
-        re.compile(r"Move sideways bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"),
-        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move sideways from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]")
+        re.compile(
+            r"Move sideways bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+) to (?P<new_commit>\w+)"
+        ),
+        re.compile(
+            r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[move sideways from (?P<old_commit>\w+) to (?P<new_commit>\w+)\]"
+        ),
     ],
     "add": [
         re.compile(r"Add bookmark (?P<bookmark>\S+) to (?P<new_commit>\w+)"),
-        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[add to (?P<new_commit>\w+)\]")
+        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[add to (?P<new_commit>\w+)\]"),
     ],
     "delete": [
         re.compile(r"Delete bookmark (?P<bookmark>\S+) from (?P<old_commit>\w+)"),
-        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[delete from (?P<old_commit>\w+)\]")
+        re.compile(r"^\s*bookmark:\s+(?P<bookmark>\S+)\s+\[delete from (?P<old_commit>\w+)\]"),
     ],
 }
 

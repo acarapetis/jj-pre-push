@@ -93,6 +93,12 @@ desc = "jj push selected bookmark(s)"
 
 Note that these depend upon the `jj push` alias defined in the previous section.
 
+## Usage with hk
+
+You can use jj-pre-push with [hk](https://github.com/jdx/hk) by specifying the name of the
+checker program on the command-line as `jj-pre-push --checker hk ...`, or set the
+environment variable `JJ_PRE_PUSH_CHECKER=hk`.
+
 ## Usage with prek
 
 You can use jj-pre-push with any checker that has a CLI compatible with pre-commit, for

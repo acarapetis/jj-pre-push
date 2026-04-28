@@ -47,6 +47,14 @@ def callback(
     )
 
 
+def command(checker: str):
+    match checker:
+        case "hk":
+            return ["hk", "run", "pre-push"]
+        case _:
+            return [checker, "run", "--hook-stage", "pre-push"]
+
+
 @app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
 def check(ctx: typer.Context):
     settings = cast(Settings, ctx.obj)
@@ -110,9 +118,7 @@ def check(ctx: typer.Context):
                 # we use whatever version the user has installed on their PATH - seems
                 # like the least surprising thing to do.
                 ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
-                result = subprocess.run(
-                    [settings.checker, "run", "--hook-stage", "pre-push", *ref_opts]
-                )
+                result = subprocess.run([*command(settings.checker), *ref_opts])
                 if result.returncode != 0:
                     success = False
                     change = jj.current_change()

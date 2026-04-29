@@ -47,7 +47,7 @@ def callback(
     )
 
 
-def command(checker: str):
+def checker_command(checker: str):
     match checker:
         case "hk":
             return ["hk", "run", "pre-push"]
@@ -118,7 +118,7 @@ def check(ctx: typer.Context):
                 # we use whatever version the user has installed on their PATH - seems
                 # like the least surprising thing to do.
                 ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
-                result = subprocess.run([*command(settings.checker), *ref_opts])
+                result = subprocess.run([*checker_command(settings.checker), *ref_opts])
                 if result.returncode != 0:
                     success = False
                     change = jj.current_change()

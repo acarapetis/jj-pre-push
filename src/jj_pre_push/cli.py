@@ -1,6 +1,7 @@
 import logging
 import subprocess
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version
 from typing import Annotated, Literal, cast
 
 import typer
@@ -18,6 +19,16 @@ Mode = Literal["default", "remote-ancestors"]
 class Settings:
     checker: str
     mode: Mode
+
+
+def version_callback(value: bool):
+    if value:
+        try:
+            v = version("jj-pre-push")
+        except PackageNotFoundError:
+            v = "unknown"
+        print(f"jj-pre-push version {v}")
+        raise typer.Exit(0)
 
 
 @app.callback()
@@ -39,6 +50,12 @@ def callback(
             "remote-ancestors: files changed since the most recent ancestors already present on the remote.",
         ),
     ] = "default",
+    version: Annotated[
+        bool,
+        typer.Option(
+            "--version", callback=version_callback, is_eager=True, help="Show version and exit."
+        ),
+    ] = False,
 ):
     logging.basicConfig(format="jj-pre-push: %(message)s", level=log_level)
     ctx.obj = Settings(

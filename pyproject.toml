@@ -1,6 +1,6 @@
 [project]
 name = "jj-pre-push"
-version = "0.4.1"
+version = "0.4.2"
 description = "A pre-commit integration for jj"
 readme = "README.md"
 authors = [
@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "typer-slim>=0.16.0",
+    "typer-slim>=0.19.0",
 ]
 license = "Apache-2.0"
 license-files = ["LICENSE"]

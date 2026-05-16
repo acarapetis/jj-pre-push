@@ -80,14 +80,23 @@ def new(ref: str | None = None):
     jj(cmd)
 
 
+def edit(ref: str):
+    jj(["edit", ref, "--quiet"])
+
+
 @contextmanager
 def autostash():
     """Remember the working copy commit and return to it at the end of the context."""
+    orig_wc = current_change()
     # Create a temporary bookmark so the current change isn't automatically abandoned
     tempbm = "jj-pre-push-keep-" + "".join(random.choices(string.ascii_letters, k=10))
     jj(["bookmark", "create", tempbm, "-r", "@", "--quiet"])
     try:
         yield
     finally:
-        jj(["edit", tempbm, "--quiet"])
+        # Restore by change_id rather than the temp bookmark. This ensures that if
+        # the working commit was updated (e.g. by a checker making edits) during
+        # the block, we return to the updated version rather than resetting to the
+        # state before the block.
+        jj(["edit", orig_wc.change_id, "--quiet"])
         jj(["bookmark", "forget", tempbm, "--quiet"])

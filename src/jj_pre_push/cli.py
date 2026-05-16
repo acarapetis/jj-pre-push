@@ -105,6 +105,15 @@ def check(ctx: typer.Context):
         return
 
     success = True
+
+    # Optimization: if the current working commit is empty and is based on the
+    # bookmark being pushed, we can run the checker directly in that working
+    # commit instead of creating a new one. This leaves any edits made by the
+    # checker in the working commit, ready for the user.
+    orig_wc = jj.current_change()
+    orig_parents = jj.get_changes("parents(@)")
+    orig_parent_ids = [c.commit_id for c in orig_parents]
+
     with jj.autostash():
         for u in updates:
             assert u.new_commit is not None
@@ -128,8 +137,18 @@ def check(ctx: typer.Context):
             # branch is a merge of two local branches started from distinct remote
             # branches. In this rare case we run once per root. Would be more efficient
             # to union the lists of changed files I guess?
+            use_orig_wc = (
+                orig_wc.empty and u.new_commit in orig_parent_ids and len(from_refs) == 1
+            )
             for from_ref in from_refs:
-                jj.new(u.new_commit)
+                if use_orig_wc:
+                    logger.info(
+                        f"Using empty working commit {orig_wc.change_id} on top of {u.new_commit}"
+                    )
+                    jj.edit(orig_wc.change_id)
+                else:
+                    jj.new(u.new_commit)
+
                 logger.info(f"Running {settings.checker} on {from_ref}...{u.new_commit}")
                 # Even though pre-commit is python, we call it as a subprocess so that
                 # we use whatever version the user has installed on their PATH - seems

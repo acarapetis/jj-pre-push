@@ -43,7 +43,7 @@ def jj(
     try:
         ret = subprocess.run(cmd, stderr=stderr, stdout=subprocess.PIPE, check=True)
     except subprocess.CalledProcessError as e:
-        raise JJError((e.stdout or b"").decode(), e.returncode) from e
+        raise JJError((e.stdout or b"").decode().strip(), e.returncode) from e
     else:
         return ret.stdout.decode().strip()
 
@@ -99,5 +99,5 @@ def autostash():
         # the block, we return to the updated version rather than resetting to the
         # state before the block.
         # We still need tempbm to avoid the change being abandoned in other circumstances.
-        jj(["edit", orig_wc.change_id, "--quiet"])
+        jj(["edit", orig_wc.change_id, "--quiet"], capture_stderr=True)
         jj(["bookmark", "forget", tempbm, "--quiet"])

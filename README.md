@@ -31,7 +31,8 @@ Use `jj-pre-push push` (or an alias - personally I use `jj push`) as a replaceme
    - Reports any failures; and if any files were modified reports the change ID(s) in which
      these modifications can be found.
 
-   > **Note:** If your current working commit is empty and is a direct child of the
+   > [!NOTE]
+   > If your current working commit is empty and is a direct child of the
    > bookmark being checked, `jj-pre-push` will run the checks directly in that
    > working commit instead of creating a new one. Any modifications made by the hooks
    > will be preserved in your working commit, ready to be diffed or squashed.

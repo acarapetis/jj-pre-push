@@ -12,7 +12,7 @@ from typing import Literal
 logger = logging.getLogger(__name__)
 
 
-@dataclass(slots=True, frozen=True)
+@dataclass
 class JJError(Exception):
     message: str
     returncode: int

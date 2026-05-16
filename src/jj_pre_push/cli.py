@@ -137,9 +137,7 @@ def check(ctx: typer.Context):
             # branch is a merge of two local branches started from distinct remote
             # branches. In this rare case we run once per root. Would be more efficient
             # to union the lists of changed files I guess?
-            use_orig_wc = (
-                orig_wc.empty and u.new_commit in orig_parent_ids and len(from_refs) == 1
-            )
+            use_orig_wc = orig_wc.empty and u.new_commit in orig_parent_ids and len(from_refs) == 1
             for from_ref in from_refs:
                 if use_orig_wc:
                     logger.info(

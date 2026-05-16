@@ -106,7 +106,7 @@ def check(ctx: typer.Context):
 
     success = True
 
-    # Optimization: if the current working commit is empty and is based on the
+    # QOL: if the current working commit is empty and is based on the
     # bookmark being pushed, we can run the checker directly in that working
     # commit instead of creating a new one. This leaves any edits made by the
     # checker in the working commit, ready for the user.

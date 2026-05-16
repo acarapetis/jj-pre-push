@@ -98,5 +98,6 @@ def autostash():
         # the working commit was updated (e.g. by a checker making edits) during
         # the block, we return to the updated version rather than resetting to the
         # state before the block.
+        # We still need tempbm to avoid the change being abandoned in other circumstances.
         jj(["edit", orig_wc.change_id, "--quiet"])
         jj(["bookmark", "forget", tempbm, "--quiet"])

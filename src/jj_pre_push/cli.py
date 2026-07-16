@@ -83,7 +83,10 @@ def check(ctx: typer.Context):
             logger.error(e.message)
         raise typer.Exit(e.returncode)
 
-    if not (root / ".pre-commit-config.yaml").exists():
+    config_files = [root / ".pre-commit-config.yaml", root / ".pre-commit-config.yml"]
+    if settings.checker == "prek":
+        config_files.append(root / "prek.toml")
+    if not any(cf.exists() for cf in config_files):
         logger.info("No pre-commit config in this repo, nothing to check.")
         return
 

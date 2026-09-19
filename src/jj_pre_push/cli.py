@@ -2,6 +2,7 @@ import logging
 import subprocess
 from dataclasses import dataclass
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 from typing import Annotated, Literal, cast
 
 import typer
@@ -19,6 +20,7 @@ Mode = Literal["default", "remote-ancestors"]
 class Settings:
     checker: str
     mode: Mode
+    config: Path | None
 
 
 def version_callback(value: bool):
@@ -41,6 +43,10 @@ def callback(
             envvar="JJ_PRE_PUSH_CHECKER", help="Executable to call to run checks (e.g. prek)"
         ),
     ] = "pre-commit",
+    config: Annotated[
+        Path | None,
+        typer.Option(envvar="JJ_PRE_PUSH_CONFIG", help="Path to alternative config file"),
+    ] = None,
     mode: Annotated[
         Mode,
         typer.Option(
@@ -60,16 +66,20 @@ def callback(
     logging.basicConfig(format="jj-pre-push: %(message)s", level=log_level)
     ctx.obj = Settings(
         checker=checker,
+        config=config,
         mode=mode,
     )
 
 
-def checker_command(checker: str):
-    match checker:
+def checker_command(settings: Settings):
+    match settings.checker:
         case "hk":
             return ["hk", "run", "pre-push"]
         case _:
-            return [checker, "run", "--hook-stage", "pre-push"]
+            command = [settings.checker, "run", "--hook-stage", "pre-push"]
+            if settings.config:
+                command.extend(["-c", str(settings.config)])
+            return command
 
 
 @app.command(context_settings={"allow_extra_args": True, "ignore_unknown_options": True})
@@ -86,6 +96,11 @@ def check(ctx: typer.Context):
     config_files = [root / ".pre-commit-config.yaml"]
     if settings.checker == "prek":
         config_files.extend((root / "prek.toml", root / ".pre-commit-config.yml"))
+
+    # If an alternative config was specified, check only there instead.
+    if settings.config:
+        config_files = [settings.config]
+
     if not any(cf.exists() for cf in config_files):
         logger.info("No pre-commit config in this repo, nothing to check.")
         return
@@ -155,7 +170,7 @@ def check(ctx: typer.Context):
                 # we use whatever version the user has installed on their PATH - seems
                 # like the least surprising thing to do.
                 ref_opts = ["--from-ref", from_ref, "--to-ref", u.new_commit]
-                result = subprocess.run([*checker_command(settings.checker), *ref_opts])
+                result = subprocess.run([*checker_command(settings), *ref_opts])
                 if result.returncode != 0:
                     success = False
                     change = jj.current_change()
